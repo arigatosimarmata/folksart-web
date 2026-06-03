@@ -1,0 +1,6 @@
+{
+  "name": "Folksart",
+  "description": "An accessibility-first Identity & Access Management (IAM) platform with humane administration, verification, and KYC workflows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
