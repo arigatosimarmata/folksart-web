@@ -1,14 +1,14 @@
-# Node.js local packages & modules
+# Dependencies and modules folder
 node_modules/
 npm-debug.log
 yarn-error.log
 
-# Build files & compiler outputs
+# Build output directories
 dist/
 build/
 .tsbuildinfo
 
-# Secret, credentials & configuration files
+# Configuration/Development files
 .env
 .env.local
 .env.production
@@ -17,14 +17,12 @@ google-key.json
 *.pem
 *.key
 
-# Container & Docker artifacts
-Dockerfile
-.dockerignore
+# Specs, documentation, and metadata
 docs_spec_backend/
 .github/
 .git
 .gitignore
 
-# OS files
+# System files
 .DS_Store
 Thumbs.db
