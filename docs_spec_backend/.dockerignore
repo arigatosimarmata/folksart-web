@@ -1,0 +1,30 @@
+# Node.js local packages & modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build files & compiler outputs
+dist/
+build/
+.tsbuildinfo
+
+# Secret, credentials & configuration files
+.env
+.env.local
+.env.production
+.gcloud/
+google-key.json
+*.pem
+*.key
+
+# Container & Docker artifacts
+Dockerfile
+.dockerignore
+docs_spec_backend/
+.github/
+.git
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
