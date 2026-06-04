@@ -904,11 +904,9 @@ export default function App() {
                 }`} 
                 id="simulation-summary-card"
               >
-                <div className="flex items-center justify-between gap-2.5">
+                <div className="flex items-start justify-between gap-2.5">
                   <div 
-                    onClick={() => setIsSummaryCardCollapsed(!isSummaryCardCollapsed)}
-                    className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer select-none hover:opacity-80 transition-all duration-150"
-                    title={isSummaryCardCollapsed ? "Expand detailed workspace simulator stats" : "Collapse workspace simulator stats"}
+                    className="flex items-start gap-2 min-w-0 flex-1 select-none transition-all duration-150"
                   >
                     {/* Persona Progress Ring Icon */}
                     <div className="relative flex items-center justify-center h-8 w-8 shrink-0 select-none" title={`Session Utilization: ${Math.round(Math.min(100, (currentDuration / averageForRole) * 100))}%`}>
@@ -956,12 +954,6 @@ export default function App() {
                     <div className="min-w-0 flex-1">
                       <span className="block text-[8px] font-extrabold text-gray-400 uppercase tracking-wider flex items-center gap-1">
                         <span>Active Persona</span>
-                        {isApproachingTimeout && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" title="Session threshold exceeded 80% of average" />
-                        )}
-                        {isPersonaLocked && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" title="Persona is locked" />
-                        )}
                       </span>
                       <p className="text-[11px] font-bold text-gray-900 tracking-tight truncate flex items-center gap-1">
                         <span>{currentUser ? currentUser.name : 'Anonymous Visitor'}</span>
@@ -969,65 +961,79 @@ export default function App() {
                           {isSummaryCardCollapsed ? '(click to expand)' : ''}
                         </span>
                       </p>
+                      
+                      {/* Stack for Role and Security Control */}
+                      <div className="flex flex-col gap-1.5 mt-1.5" onClick={(e) => e.stopPropagation()}>
+                        {/* Role Badge (e.g., Security Officer, Administrator) */}
+                        <div>
+                          <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded tracking-wide uppercase border leading-none inline-block ${
+                            isApproachingTimeout
+                              ? 'bg-amber-100 text-amber-800 border-amber-200 animate-pulse'
+                              : currentUser?.role === 'Administrator' ? 'bg-blue-50 text-[#2563EB] border-[#DBEAFE]' :
+                                currentUser?.role === 'Security Officer' ? 'bg-purple-50 text-purple-700 border-purple-100' :
+                                currentUser?.role === 'End User' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                'bg-amber-50 text-amber-700 border-amber-100'
+                          }`}>
+                            {currentUser ? currentUser.role : 'Anonymous'}
+                          </span>
+                        </div>
+
+                        {/* Interactive Lock Controls (Button and Status Span side-by-side below Role) */}
+                        <div className="flex items-center gap-1.5">
+                          {/* Lock Toggle Button */}
+                          <button
+                            type="button"
+                            id="toggle-persona-lock-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const nextVal = !isPersonaLocked;
+                              setIsPersonaLocked(nextVal);
+                              addAuditLog(
+                                nextVal ? 'SIMULATOR_PERSONA_LOCKED' : 'SIMULATOR_PERSONA_UNLOCKED',
+                                currentUser ? currentUser.name : 'Anonymous Visitor',
+                                nextVal ? 'warning' : 'info'
+                              );
+                            }}
+                            className={`h-5 w-5 rounded border transition-all cursor-pointer flex items-center justify-center shrink-0 p-0 ${
+                              isPersonaLocked
+                                ? 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100'
+                                : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                            }`}
+                            title={isPersonaLocked ? "Unlock Persona Selection" : "Lock Persona Selection"}
+                          >
+                            {isPersonaLocked ? <Lock className="h-2.5 w-2.5" /> : <Unlock className="h-2.5 w-2.5" />}
+                          </button>
+
+                          {/* Lock Status Span */}
+                          <span className={`h-5 text-[8px] font-extrabold px-2 py-0 rounded tracking-wide uppercase border flex items-center justify-center leading-none shrink-0 ${
+                            isPersonaLocked
+                              ? 'bg-blue-50 text-blue-700 border-blue-200'
+                              : 'bg-slate-50 text-slate-500 border-slate-200'
+                          }`}>
+                            {isPersonaLocked ? 'Locked' : 'Unlocked'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {/* Locked Status Badge */}
-                    {isPersonaLocked && (
-                      <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded tracking-wide uppercase border bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-0.5 animate-pulse">
-                        <Lock className="h-2 w-2 shrink-0 text-blue-600" />
-                        <span>Locked</span>
-                      </span>
-                    )}
-
-                    <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded tracking-wide uppercase border shrink-0 ${
-                      isApproachingTimeout
-                        ? 'bg-amber-100 text-amber-800 border-amber-200 animate-pulse'
-                        : currentUser?.role === 'Administrator' ? 'bg-blue-50 text-[#2563EB] border-[#DBEAFE]' :
-                          currentUser?.role === 'Security Officer' ? 'bg-[#FAF5FF] text-purple-700 border-purple-100' :
-                          currentUser?.role === 'End User' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                          'bg-amber-50 text-amber-700 border-amber-100'
-                    }`}>
-                      {currentUser ? currentUser.role : 'Anonymous'}
-                    </span>
-
-                    {/* Lock Toggle Button */}
-                    <button
-                      type="button"
-                      id="toggle-persona-lock-btn"
-                      onClick={() => {
-                        const nextVal = !isPersonaLocked;
-                        setIsPersonaLocked(nextVal);
-                        addAuditLog(
-                          nextVal ? 'SIMULATOR_PERSONA_LOCKED' : 'SIMULATOR_PERSONA_UNLOCKED',
-                          currentUser ? currentUser.name : 'Anonymous Visitor',
-                          nextVal ? 'warning' : 'info'
-                        );
-                      }}
-                      className={`p-1 rounded border transition-all cursor-pointer flex items-center justify-center ${
-                        isPersonaLocked
-                          ? 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100'
-                          : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-100'
-                      }`}
-                      title={isPersonaLocked ? "Unlock Persona Selection" : "Lock Persona Selection"}
-                    >
-                      {isPersonaLocked ? <Lock className="h-2.5 w-2.5" /> : <Unlock className="h-2.5 w-2.5" />}
-                    </button>
-
-                    {/* Collapsible Accordion Toggle Button */}
-                    <button
-                      type="button"
-                      id="toggle-summary-collapse-btn"
-                      onClick={() => setIsSummaryCardCollapsed(!isSummaryCardCollapsed)}
-                      className={`p-1 rounded border transition-all cursor-pointer flex items-center justify-center ${
-                        isSummaryCardCollapsed
-                          ? 'bg-blue-50/55 border-blue-100 text-blue-600 hover:bg-blue-100'
-                          : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-100'
-                      }`}
-                      title={isSummaryCardCollapsed ? "Expand detailed statistics" : "Collapse detailed statistics"}
-                    >
-                      {isSummaryCardCollapsed ? <ChevronDown className="h-2.5 w-2.5 animate-bounce-slow" /> : <ChevronUp className="h-2.5 w-2.5" />}
-                    </button>
+                  <div className="flex items-start gap-1.5 shrink-0 pt-0.5">
+                    {/* Action Buttons Hub (Only contains simple, clean buttons now to prevent layout overflow) */}
+                    <div className="flex items-center gap-1">
+                      {/* Collapsible Accordion Toggle Button */}
+                      <button
+                        type="button"
+                        id="toggle-summary-collapse-btn"
+                        onClick={() => setIsSummaryCardCollapsed(!isSummaryCardCollapsed)}
+                        className={`p-1 rounded border transition-all cursor-pointer flex items-center justify-center ${
+                          isSummaryCardCollapsed
+                            ? 'bg-blue-50/55 border-blue-100 text-blue-600 hover:bg-blue-100'
+                            : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                        }`}
+                        title={isSummaryCardCollapsed ? "Expand detailed statistics" : "Collapse detailed statistics"}
+                      >
+                        {isSummaryCardCollapsed ? <ChevronDown className="h-2.5 w-2.5 animate-bounce-slow" /> : <ChevronUp className="h-2.5 w-2.5" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
