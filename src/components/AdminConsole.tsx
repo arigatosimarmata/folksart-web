@@ -3,7 +3,7 @@ import {
   Users, UserCheck, ShieldAlert, Key, Search, Filter, Plus, 
   Eye, Edit2, RotateCw, Ban, UserX, CheckCircle, AlertTriangle, 
   Building, Phone, Mail, User, Shield, ArrowUpRight, ArrowDownLeft,
-  Maximize2, Minimize2, ChevronLeft, ChevronRight
+  Maximize2, Minimize2, ChevronLeft, ChevronRight, FileText
 } from 'lucide-react';
 import { IAMUser, IAMRole, IAMStatus, KYCStatus, AuditLog } from '../types/iam';
 import { generateOpaqueToken } from '../data/mockData';
@@ -208,6 +208,38 @@ export default function AdminConsole({
   const activeIdentities = users.filter(u => u.status === 'Active').length;
   const kycVerifiedCount = users.filter(u => u.kycStatus === 'Verified').length;
   const averageRisk = Math.round(users.reduce((acc, curr) => acc + curr.riskScore, 0) / totalIdentities);
+
+  // CSV Export Logic
+  const handleExportCSV = () => {
+    if (filteredUsers.length === 0) return;
+    
+    const headers = ['ID', 'Name', 'Username', 'Email', 'Phone', 'Role', 'Status', 'KYC Status', 'Department', 'Risk Score', 'Created At'];
+    const csvRows = filteredUsers.map(user => [
+      user.id,
+      `"${user.name}"`,
+      user.username,
+      user.email,
+      user.phone,
+      user.role,
+      user.status,
+      user.kycStatus,
+      `"${user.department}"`,
+      user.riskScore,
+      user.createdAt
+    ].join(','));
+    
+    const csvContent = [headers.join(','), ...csvRows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `iam_identities_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    addAuditLog('DATA_EXPORT_INITIATED', `Batch Identifier: ${filteredUsers.length} records`, 'info');
+  };
 
   return (
     <div className="space-y-6" id="admin-console-view">
@@ -590,8 +622,20 @@ export default function AdminConsole({
               <option value={20}>20</option>
               <option value={50}>50</option>
             </select>
-            <span className="text-[11px] text-gray-400 font-semibold ml-2">
-              Showing <span className="font-bold text-gray-700">{totalFilteredCount > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="font-bold text-gray-700">{Math.min(currentPage * itemsPerPage, totalFilteredCount)}</span> of <span className="font-bold text-gray-700">{totalFilteredCount}</span> entries
+            <span className="text-[11px] text-gray-400 font-semibold ml-2 flex items-center">
+              Showing <span className="font-bold text-gray-700 mx-1">{totalFilteredCount > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="font-bold text-gray-700 mx-1">{Math.min(currentPage * itemsPerPage, totalFilteredCount)}</span> of <span className="font-bold text-gray-700 mx-1">{totalFilteredCount}</span> entries
+              
+              {totalFilteredCount > 0 && (
+                <button 
+                  onClick={handleExportCSV}
+                  id="btn-export-csv"
+                  className="ml-4 inline-flex items-center gap-1.5 px-2 py-1 rounded bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-200 text-[10px] font-bold text-gray-500 hover:text-[#2563EB] transition-all cursor-pointer shadow-3xs"
+                  title="Download current filtered results as CSV"
+                >
+                  <FileText className="h-3 w-3" />
+                  <span>Export to CSV</span>
+                </button>
+              )}
             </span>
           </div>
 
