@@ -3,7 +3,7 @@ import {
   Users, UserCheck, ShieldAlert, Key, Search, Filter, Plus, 
   Eye, Edit2, RotateCw, Ban, UserX, CheckCircle, AlertTriangle, 
   Building, Phone, Mail, User, Shield, ArrowUpRight, ArrowDownLeft,
-  Maximize2, Minimize2, ChevronLeft, ChevronRight, FileText
+  Maximize2, Minimize2, ChevronLeft, ChevronRight, FileText, Loader2
 } from 'lucide-react';
 import { IAMUser, IAMRole, IAMStatus, KYCStatus, AuditLog } from '../types/iam';
 import { generateOpaqueToken } from '../data/mockData';
@@ -47,6 +47,7 @@ export default function AdminConsole({
   const [selectedUser, setSelectedUser] = useState<IAMUser | null>(null);
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [detailUser, setDetailUser] = useState<IAMUser | null>(null);
 
   // New User Form State
@@ -211,34 +212,41 @@ export default function AdminConsole({
 
   // CSV Export Logic
   const handleExportCSV = () => {
-    if (filteredUsers.length === 0) return;
+    if (filteredUsers.length === 0 || isExporting) return;
     
-    const headers = ['ID', 'Name', 'Username', 'Email', 'Phone', 'Role', 'Status', 'KYC Status', 'Department', 'Risk Score', 'Created At'];
-    const csvRows = filteredUsers.map(user => [
-      user.id,
-      `"${user.name}"`,
-      user.username,
-      user.email,
-      user.phone,
-      user.role,
-      user.status,
-      user.kycStatus,
-      `"${user.department}"`,
-      user.riskScore,
-      user.createdAt
-    ].join(','));
-    
-    const csvContent = [headers.join(','), ...csvRows].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `iam_identities_export_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    addAuditLog('DATA_EXPORT_INITIATED', `Batch Identifier: ${filteredUsers.length} records`, 'info');
+    setIsExporting(true);
+
+    // Simulate generation delay for UX
+    setTimeout(() => {
+      const headers = ['ID', 'Name', 'Username', 'Email', 'Phone', 'Role', 'Status', 'KYC Status', 'Department', 'Risk Score', 'Created At'];
+      const csvRows = filteredUsers.map(user => [
+        user.id,
+        `"${user.name}"`,
+        user.username,
+        user.email,
+        user.phone,
+        user.role,
+        user.status,
+        user.kycStatus,
+        `"${user.department}"`,
+        user.riskScore,
+        user.createdAt
+      ].join(','));
+      
+      const csvContent = [headers.join(','), ...csvRows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `iam_identities_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      addAuditLog('DATA_EXPORT_INITIATED', `Batch Identifier: ${filteredUsers.length} records`, 'info');
+      
+      setIsExporting(false);
+    }, 1200);
   };
 
   return (
@@ -628,12 +636,21 @@ export default function AdminConsole({
               {totalFilteredCount > 0 && (
                 <button 
                   onClick={handleExportCSV}
+                  disabled={isExporting}
                   id="btn-export-csv"
-                  className="ml-4 inline-flex items-center gap-1.5 px-2 py-1 rounded bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-200 text-[10px] font-bold text-gray-500 hover:text-[#2563EB] transition-all cursor-pointer shadow-3xs"
+                  className={`ml-4 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded transition-all shadow-3xs border ${
+                    isExporting 
+                      ? 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white hover:bg-blue-50 border-gray-200 hover:border-blue-200 text-gray-500 hover:text-[#2563EB] cursor-pointer'
+                  } text-[10px] font-bold`}
                   title="Download current filtered results as CSV"
                 >
-                  <FileText className="h-3 w-3" />
-                  <span>Export to CSV</span>
+                  {isExporting ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <FileText className="h-3 w-3" />
+                  )}
+                  <span>{isExporting ? 'Generating...' : 'Export to CSV'}</span>
                 </button>
               )}
             </span>

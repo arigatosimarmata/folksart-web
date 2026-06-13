@@ -809,12 +809,19 @@ export default function App() {
                 {currentUser && (currentUser.role === 'Administrator' || currentUser.role === 'Security Officer') && (
                   <button
                     onClick={() => setActiveTab('admin')}
-                    className={`w-full flex items-center justify-between text-xs font-bold py-2.5 px-3 rounded-lg border transition-all ${
+                    className={`relative w-full flex items-center justify-between text-xs font-bold py-2.5 px-3 rounded-lg border transition-all ${
                       activeTab === 'admin' 
                         ? 'bg-blue-50/50 border-blue-100 text-[#2563EB]' 
                         : 'border-transparent text-gray-600 hover:bg-gray-50'
                     }`}
                   >
+                    {activeTab === 'admin' && (
+                      <motion.div
+                        layoutId="side-nav-indicator"
+                        className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#2563EB] rounded-r-full"
+                        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                      />
+                    )}
                     <span className="flex items-center gap-2.5">
                       <Users className="h-4 w-4 shrink-0" />
                       Enrolled Corporate Pool
@@ -827,12 +834,19 @@ export default function App() {
                 {currentUser && (
                   <button
                     onClick={() => setActiveTab('kyc')}
-                    className={`w-full flex items-center gap-2.5 text-xs font-bold py-2.5 px-3 rounded-lg border transition-all ${
+                    className={`relative w-full flex items-center gap-2.5 text-xs font-bold py-2.5 px-3 rounded-lg border transition-all ${
                       activeTab === 'kyc' 
                         ? 'bg-blue-50/50 border-blue-100 text-[#2563EB]' 
                         : 'border-transparent text-gray-600 hover:bg-gray-50'
                     }`}
                   >
+                    {activeTab === 'kyc' && (
+                      <motion.div
+                        layoutId="side-nav-indicator"
+                        className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#2563EB] rounded-r-full"
+                        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                      />
+                    )}
                     <ClipboardCheck className="h-4 w-4 shrink-0" />
                     KYC Verification Hub
                   </button>
@@ -842,12 +856,19 @@ export default function App() {
                 {currentUser && (
                   <button
                     onClick={() => setActiveTab('user')}
-                    className={`w-full flex items-center gap-2.5 text-xs font-bold py-2.5 px-3 rounded-lg border transition-all ${
+                    className={`relative w-full flex items-center gap-2.5 text-xs font-bold py-2.5 px-3 rounded-lg border transition-all ${
                       activeTab === 'user' 
                         ? 'bg-blue-50/50 border-blue-100 text-[#2563EB]' 
                         : 'border-transparent text-gray-600 hover:bg-gray-50'
                     }`}
                   >
+                    {activeTab === 'user' && (
+                      <motion.div
+                        layoutId="side-nav-indicator"
+                        className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#2563EB] rounded-r-full"
+                        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                      />
+                    )}
                     <User className="h-4 w-4 shrink-0" />
                     Identity Security Context
                   </button>
@@ -856,12 +877,19 @@ export default function App() {
                 {/* 4. Integration Sandbox Playground */}
                 <button
                   onClick={() => setActiveTab('developer')}
-                  className={`w-full flex items-center justify-between text-xs font-bold py-2.5 px-3 rounded-lg border transition-all ${
+                  className={`relative w-full flex items-center justify-between text-xs font-bold py-2.5 px-3 rounded-lg border transition-all ${
                     activeTab === 'developer' 
                       ? 'bg-blue-50/50 border-blue-100 text-[#2563EB]' 
                       : 'border-transparent text-gray-600 hover:bg-gray-50'
                   }`}
                 >
+                  {activeTab === 'developer' && (
+                    <motion.div
+                      layoutId="side-nav-indicator"
+                      className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#2563EB] rounded-r-full"
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    />
+                  )}
                   <span className="flex items-center gap-2.5">
                     <Terminal className="h-4 w-4 shrink-0" />
                     Developer Playground
