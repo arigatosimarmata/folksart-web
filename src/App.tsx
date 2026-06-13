@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Shield, Users, ClipboardCheck, User, Terminal, LogOut, 
   HelpCircle, RefreshCw, Layers, Database, UserCheck, AlertTriangle, Key,
-  TrendingUp, TrendingDown, Clock, Lock, Unlock, Download, ChevronDown, ChevronUp
+  TrendingUp, TrendingDown, Clock, Lock, Unlock, Download, ChevronDown, ChevronUp,
+  Settings2
 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, Tooltip, BarChart, Bar, XAxis, Cell } from 'recharts';
 import { AnimatePresence, motion } from 'motion/react';
@@ -49,6 +50,16 @@ export default function App() {
     localStorage.setItem('folksart_users', JSON.stringify(INITIAL_USERS));
     return INITIAL_USERS;
   });
+
+  const [visibleColumns, setVisibleColumns] = useState({
+    email: true,
+    role: true,
+    department: true,
+    status: true,
+    kyc: true,
+    risk: true,
+  });
+  const [isColumnSettingsOpen, setIsColumnSettingsOpen] = useState(false);
 
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
     const local = localStorage.getItem('folksart_audit');
@@ -316,6 +327,41 @@ export default function App() {
     };
     setAuditLogs(prev => [newLog, ...prev]);
   };
+
+  // Keyboard Shortcuts Handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey) {
+        switch (e.key.toLowerCase()) {
+          case 'a':
+            if (currentUser && (currentUser.role === 'Administrator' || currentUser.role === 'Security Officer')) {
+              setActiveTab('admin');
+              addAuditLog('NAVIGATION_SHORTCUT', 'Switched to Enrolled Corporate Pool (Alt+A)', 'info');
+            }
+            break;
+          case 'k':
+            if (currentUser) {
+              setActiveTab('kyc');
+              addAuditLog('NAVIGATION_SHORTCUT', 'Switched to KYC Verification Hub (Alt+K)', 'info');
+            }
+            break;
+          case 'u':
+            if (currentUser) {
+              setActiveTab('user');
+              addAuditLog('NAVIGATION_SHORTCUT', 'Switched to Identity Security Context (Alt+U)', 'info');
+            }
+            break;
+          case 'd':
+            setActiveTab('developer');
+            addAuditLog('NAVIGATION_SHORTCUT', 'Switched to Developer Playground (Alt+D)', 'info');
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentUser, addAuditLog]);
 
   // Helper action for updating an user parameters
   const handleUpdateUser = (updatedUser: IAMUser) => {
@@ -807,27 +853,78 @@ export default function App() {
               <nav className="space-y-1" id="side-navigation">
                 {/* 1. Admin Control Panel (Depends on Auth block) */}
                 {currentUser && (currentUser.role === 'Administrator' || currentUser.role === 'Security Officer') && (
-                  <button
-                    onClick={() => setActiveTab('admin')}
-                    className={`relative w-full flex items-center justify-between text-xs font-bold py-2.5 px-3 rounded-lg border transition-all ${
-                      activeTab === 'admin' 
-                        ? 'bg-blue-50/50 border-blue-100 text-[#2563EB]' 
-                        : 'border-transparent text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    {activeTab === 'admin' && (
-                      <motion.div
-                        layoutId="side-nav-indicator"
-                        className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#2563EB] rounded-r-full"
-                        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                      />
-                    )}
-                    <span className="flex items-center gap-2.5">
-                      <Users className="h-4 w-4 shrink-0" />
-                      Enrolled Corporate Pool
-                    </span>
-                    <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-400 font-semibold">{users.length}</span>
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setActiveTab('admin')}
+                      className={`relative w-full flex items-center justify-between text-xs font-bold py-2.5 px-3 rounded-lg border transition-all ${
+                        activeTab === 'admin' 
+                          ? 'bg-blue-50/50 border-blue-100 text-[#2563EB]' 
+                          : 'border-transparent text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {activeTab === 'admin' && (
+                        <motion.div
+                          layoutId="side-nav-indicator"
+                          className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#2563EB] rounded-r-full"
+                          transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                        />
+                      )}
+                      <span className="flex items-center gap-2.5">
+                        <Users className="h-4 w-4 shrink-0" />
+                        <span className="flex items-baseline gap-1.5">
+                          Enrolled Corporate Pool
+                          <span className="text-[8px] opacity-40 font-mono tracking-tighter">Alt+A</span>
+                        </span>
+                      </span>
+                      <div className="flex items-center gap-1.5 relative z-10">
+                        <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-400 font-semibold">{users.length}</span>
+                        <div 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsColumnSettingsOpen(!isColumnSettingsOpen);
+                          }}
+                          id="admin-column-settings-toggle"
+                          className={`p-1 rounded hover:bg-blue-100 transition-colors cursor-pointer ${isColumnSettingsOpen ? 'text-[#2563EB] bg-blue-100' : 'text-gray-400'}`}
+                          title="Table column visibility"
+                        >
+                          <Settings2 className="h-3 w-3" />
+                        </div>
+                      </div>
+                    </button>
+
+                    <AnimatePresence>
+                      {isColumnSettingsOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, x: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, x: 10, scale: 1 }}
+                          exit={{ opacity: 0, x: -10, scale: 0.95 }}
+                          className="absolute left-full top-0 ml-2 z-[60] w-44 bg-white border border-gray-100 shadow-2xl rounded-xl p-3 space-y-2"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <h5 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Column Layout</h5>
+                            <button onClick={() => setIsColumnSettingsOpen(false)} className="text-gray-300 hover:text-gray-500 transition-colors">
+                              <RefreshCw className="h-2.5 w-2.5" onClick={() => setVisibleColumns({
+                                email: true, role: true, department: true, status: true, kyc: true, risk: true
+                              })} />
+                            </button>
+                          </div>
+                          <div className="space-y-1">
+                            {Object.entries(visibleColumns).map(([key, val]) => (
+                               <label key={key} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer transition-colors group">
+                                 <input 
+                                   type="checkbox" 
+                                   checked={val} 
+                                   onChange={() => setVisibleColumns(prev => ({...prev, [key]: !prev[key] as any}))}
+                                   className="rounded border-gray-300 text-[#2563EB] focus:ring-blue-500 h-3 w-3 transition-all cursor-pointer"
+                                 />
+                                 <span className="text-[10px] font-bold text-gray-600 group-hover:text-gray-900 capitalize select-none">{key}</span>
+                               </label>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 )}
 
                 {/* 2. KYC Compliance Terminal */}
@@ -848,7 +945,10 @@ export default function App() {
                       />
                     )}
                     <ClipboardCheck className="h-4 w-4 shrink-0" />
-                    KYC Verification Hub
+                    <span className="flex items-baseline gap-1.5">
+                      KYC Verification Hub
+                      <span className="text-[8px] opacity-40 font-mono tracking-tighter">Alt+K</span>
+                    </span>
                   </button>
                 )}
 
@@ -870,7 +970,10 @@ export default function App() {
                       />
                     )}
                     <User className="h-4 w-4 shrink-0" />
-                    Identity Security Context
+                    <span className="flex items-baseline gap-1.5">
+                      Identity Security Context
+                      <span className="text-[8px] opacity-40 font-mono tracking-tighter">Alt+U</span>
+                    </span>
                   </button>
                 )}
 
@@ -892,7 +995,10 @@ export default function App() {
                   )}
                   <span className="flex items-center gap-2.5">
                     <Terminal className="h-4 w-4 shrink-0" />
-                    Developer Playground
+                    <span className="flex items-baseline gap-1.5">
+                      Developer Playground
+                      <span className="text-[8px] opacity-40 font-mono tracking-tighter">Alt+D</span>
+                    </span>
                   </span>
                   <span className="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold px-1.5 py-0.5 rounded uppercase tracking-wide">Live</span>
                 </button>
@@ -1423,6 +1529,7 @@ export default function App() {
               addAuditLog={addAuditLog}
               auditLogs={auditLogs}
               onSelectUserForInspection={handleInspectUserDevConsole}
+              visibleColumns={visibleColumns}
             />
           )}
 

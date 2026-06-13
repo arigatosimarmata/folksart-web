@@ -16,6 +16,14 @@ interface AdminConsoleProps {
   addAuditLog: (action: string, targetName: string, severity?: 'info' | 'warning' | 'critical') => void;
   auditLogs: AuditLog[];
   onSelectUserForInspection: (user: IAMUser) => void;
+  visibleColumns?: {
+    email: boolean;
+    role: boolean;
+    department: boolean;
+    status: boolean;
+    kyc: boolean;
+    risk: boolean;
+  };
 }
 
 export default function AdminConsole({ 
@@ -25,7 +33,15 @@ export default function AdminConsole({
   onDeleteUser, 
   addAuditLog,
   auditLogs,
-  onSelectUserForInspection
+  onSelectUserForInspection,
+  visibleColumns = {
+    email: true,
+    role: true,
+    department: true,
+    status: true,
+    kyc: true,
+    risk: true,
+  }
 }: AdminConsoleProps) {
   
   // Filtering & Search state
@@ -400,11 +416,11 @@ export default function AdminConsole({
             <thead>
               <tr className="bg-gray-50/75 border-b border-gray-100 text-gray-400 text-[10px] font-bold uppercase tracking-wider">
                 <th className="py-3 px-4">Subject Principal</th>
-                <th className="py-3 px-4">Corporate Role</th>
-                <th className="py-3 px-4">Governance Department</th>
-                <th className="py-3 px-4">Identity Status</th>
-                <th className="py-3 px-4">KYC Compliance</th>
-                <th className="py-3 px-4 text-center">Threat Vector</th>
+                {visibleColumns.role && <th className="py-3 px-4">Corporate Role</th>}
+                {visibleColumns.department && <th className="py-3 px-4">Governance Department</th>}
+                {visibleColumns.status && <th className="py-3 px-4">Identity Status</th>}
+                {visibleColumns.kyc && <th className="py-3 px-4">KYC Compliance</th>}
+                {visibleColumns.risk && <th className="py-3 px-4 text-center">Threat Vector</th>}
                 <th className="py-3 px-4 text-right">Administrative Execution</th>
               </tr>
             </thead>
@@ -428,86 +444,98 @@ export default function AdminConsole({
                               <Key className="h-3.5 w-3.5 text-blue-500" title="MFA Protection Enabled" />
                             )}
                           </div>
-                          <div className="text-gray-400 font-medium text-[11px]">
-                            {user.username} <span className="mx-1">•</span> {user.email}
-                          </div>
+                          {visibleColumns.email && (
+                            <div className="text-gray-400 font-medium text-[11px]">
+                              {user.username} <span className="mx-1">•</span> {user.email}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
 
                     {/* Corporate Role */}
-                    <td className="py-3.5 px-4 font-semibold text-gray-700">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-700 border border-gray-200/50">
-                        <Shield className="h-2.5 w-2.5 text-gray-500" />
-                        {user.role}
-                      </span>
-                    </td>
+                    {visibleColumns.role && (
+                      <td className="py-3.5 px-4 font-semibold text-gray-700">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-700 border border-gray-200/50">
+                          <Shield className="h-2.5 w-2.5 text-gray-500" />
+                          {user.role}
+                        </span>
+                      </td>
+                    )}
 
                     {/* Corporate Department */}
-                    <td className="py-3.5 px-4 text-gray-500 font-medium">
-                      {user.department}
-                    </td>
+                    {visibleColumns.department && (
+                      <td className="py-3.5 px-4 text-gray-500 font-medium">
+                        {user.department}
+                      </td>
+                    )}
 
                     {/* Identity Status badge */}
-                    <td className="py-3.5 px-4">
-                      {user.status === 'Active' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                          {user.status}
-                        </span>
-                      )}
-                      {user.status === 'Deactivated' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200">
-                          <span className="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
-                          Offline/Suspended
-                        </span>
-                      )}
-                      {user.status === 'Banned' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-100">
-                          <span className="h-1.5 w-1.5 rounded-full bg-red-500"></span>
-                          Banned Pool
-                        </span>
-                      )}
-                    </td>
+                    {visibleColumns.status && (
+                      <td className="py-3.5 px-4">
+                        {user.status === 'Active' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            {user.status}
+                          </span>
+                        )}
+                        {user.status === 'Deactivated' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                            <span className="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
+                            Offline/Suspended
+                          </span>
+                        )}
+                        {user.status === 'Banned' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-100">
+                            <span className="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                            Banned Pool
+                          </span>
+                        )}
+                      </td>
+                    )}
 
                     {/* KYC compliance status */}
-                    <td className="py-3.5 px-4">
-                      {user.kycStatus === 'Verified' && (
-                        <span className="text-[11px] font-bold text-teal-600 flex items-center gap-1">
-                          <CheckCircle className="h-3.5 w-3.5" /> Full Cleared
-                        </span>
-                      )}
-                      {user.kycStatus === 'Pending Review' && (
-                        <span className="text-[11px] font-semibold text-amber-500 flex items-center gap-1">
-                          <AlertTriangle className="h-3.5 w-3.5" /> Pending Audit
-                        </span>
-                      )}
-                      {user.kycStatus === 'Not Started' && (
-                        <span className="text-[11px] font-medium text-gray-400 flex items-center gap-1">
-                          Uninitiated
-                        </span>
-                      )}
-                      {user.kycStatus === 'Action Required' && (
-                        <span className="text-[11px] font-bold text-rose-500 flex items-center gap-1">
-                          <AlertTriangle className="h-3.5 w-3.5" /> Re-upload Req.
-                        </span>
-                      )}
-                    </td>
+                    {visibleColumns.kyc && (
+                      <td className="py-3.5 px-4">
+                        {user.kycStatus === 'Verified' && (
+                          <span className="text-[11px] font-bold text-teal-600 flex items-center gap-1">
+                            <CheckCircle className="h-3.5 w-3.5" /> Full Cleared
+                          </span>
+                        )}
+                        {user.kycStatus === 'Pending Review' && (
+                          <span className="text-[11px] font-semibold text-amber-500 flex items-center gap-1">
+                            <AlertTriangle className="h-3.5 w-3.5" /> Pending Audit
+                          </span>
+                        )}
+                        {user.kycStatus === 'Not Started' && (
+                          <span className="text-[11px] font-medium text-gray-400 flex items-center gap-1">
+                            Uninitiated
+                          </span>
+                        )}
+                        {user.kycStatus === 'Action Required' && (
+                          <span className="text-[11px] font-bold text-rose-500 flex items-center gap-1">
+                            <AlertTriangle className="h-3.5 w-3.5" /> Re-upload Req.
+                          </span>
+                        )}
+                      </td>
+                    )}
 
                     {/* Risk indicator bar */}
-                    <td className="py-3.5 px-4 text-center">
-                      <div className="inline-flex flex-col items-center">
-                        <span className={`text-[10px] font-bold ${user.riskScore > 75 ? 'text-red-600' : (user.riskScore > 40 ? 'text-amber-500' : 'text-emerald-600')}`}>
-                          {user.riskScore}% Risk
-                        </span>
-                        <div className="w-16 h-1 bg-gray-100 rounded-full mt-1 overflow-hidden">
-                          <div 
-                            className={`h-full ${user.riskScore > 75 ? 'bg-red-500' : (user.riskScore > 40 ? 'bg-amber-400' : 'bg-emerald-500')}`}
-                            style={{ width: `${user.riskScore}%` }}
-                          ></div>
+                    {visibleColumns.risk && (
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="inline-flex flex-col items-center">
+                          <span className={`text-[10px] font-bold ${user.riskScore > 75 ? 'text-red-600' : (user.riskScore > 40 ? 'text-amber-500' : 'text-emerald-600')}`}>
+                            {user.riskScore}% Risk
+                          </span>
+                          <div className="w-16 h-1 bg-gray-100 rounded-full mt-1 overflow-hidden">
+                            <div 
+                              className={`h-full ${user.riskScore > 75 ? 'bg-red-500' : (user.riskScore > 40 ? 'bg-amber-400' : 'bg-emerald-500')}`}
+                              style={{ width: `${user.riskScore}%` }}
+                            ></div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
+                    )}
 
                     {/* Interactive operations */}
                     <td className="py-3.5 px-4 text-right">
@@ -643,7 +671,7 @@ export default function AdminConsole({
                       ? 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed' 
                       : 'bg-white hover:bg-blue-50 border-gray-200 hover:border-blue-200 text-gray-500 hover:text-[#2563EB] cursor-pointer'
                   } text-[10px] font-bold`}
-                  title="Download current filtered results as CSV"
+                  title="Download current user list"
                 >
                   {isExporting ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
